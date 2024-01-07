@@ -1,13 +1,18 @@
 package com.vangelnum.ailandmark.presentation
 
 import android.content.Context
-import android.view.ContextMenu
+import android.graphics.Bitmap
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,26 +26,33 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.vangelnum.ailandmark.R
+import com.vangelnum.ailandmark.data.ClassificationResult
 import com.vangelnum.ailandmark.data.TfLandMarkClassifier
-import com.vangelnum.ailandmark.domain.Classification
 
 @Composable
 fun MainScreen(
     applicationContext: Context,
-    onNavigateToInformation:(List<Classification>) -> Unit
+    onNavigateToInformation: (ClassificationResult) -> Unit
 ) {
-    var classification by remember {
-        mutableStateOf(emptyList<Classification>())
+    var classificationResult by remember {
+        mutableStateOf(
+            ClassificationResult(
+                emptyList(),
+                Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+            )
+        )
     }
     val analyzer = remember {
         LandmarkImageAnalyzer(
             classifier = TfLandMarkClassifier(
                 context = applicationContext
             ),
-            onResult = {
-                classification = it
+            onResult = { classifications, bitmap ->
+                classificationResult = ClassificationResult(classifications, bitmap)
             }
         )
     }
@@ -58,11 +70,22 @@ fun MainScreen(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             PreviewCenterCropping(modifier = Modifier.aspectRatio(1f))
         }
-        if (classification.isNotEmpty()) {
-            OutlinedButton(onClick = {
-                onNavigateToInformation(classification)
-            }) {
-                Text(text = stringResource(id = R.string.define))
+        if (classificationResult.classifications.isNotEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OutlinedButton(shape = RoundedCornerShape(12.dp), onClick = {
+                    onNavigateToInformation(classificationResult)
+                }) {
+                    Text(
+                        text = stringResource(id = R.string.define),
+                        fontSize = 20.sp,
+                        color = Color.Cyan
+                    )
+                }
+                Spacer(modifier = Modifier.height(64.dp))
             }
         }
     }

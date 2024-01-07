@@ -10,13 +10,12 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.task.core.BaseOptions
 import org.tensorflow.lite.task.core.vision.ImageProcessingOptions
 import org.tensorflow.lite.task.vision.classifier.ImageClassifier
-import java.lang.IllegalStateException
 
 class TfLandMarkClassifier(
     private val context: Context,
-    private val threshold: Float = 0.7f,
-    private val maxResult: Int = 3
-): LandmarkClassifier {
+    private val threshold: Float = 0.6f,
+    private val maxResult: Int = 5
+) : LandmarkClassifier {
 
     private var classifier: ImageClassifier? = null
 
@@ -52,7 +51,7 @@ class TfLandMarkClassifier(
             .build()
         val results = classifier?.classify(tensorImage, imageProcessingOptions)
         return results?.flatMap { classications ->
-            classications.categories.map { category ->  
+            classications.categories.map { category ->
                 Classification(name = category.displayName, score = category.score)
             }
         }?.distinctBy { it.name } ?: emptyList()
@@ -60,13 +59,13 @@ class TfLandMarkClassifier(
 
     private fun getOrientationFromRotation(rotation: Int): ImageProcessingOptions.Orientation {
         return when (rotation) {
-            Surface.ROTATION_270 -> ImageProcessingOptions.Orientation.BOTTOM_RIGHT
-            Surface.ROTATION_90 -> ImageProcessingOptions.Orientation.TOP_LEFT
-            Surface.ROTATION_180 -> ImageProcessingOptions.Orientation.RIGHT_BOTTOM
+            Surface.ROTATION_0 -> ImageProcessingOptions.Orientation.LEFT_BOTTOM
+            Surface.ROTATION_90 -> ImageProcessingOptions.Orientation.BOTTOM_RIGHT
+            Surface.ROTATION_180 -> ImageProcessingOptions.Orientation.RIGHT_TOP
+            Surface.ROTATION_270 -> ImageProcessingOptions.Orientation.TOP_LEFT
             else -> {
-                ImageProcessingOptions.Orientation.RIGHT_TOP
+                ImageProcessingOptions.Orientation.LEFT_BOTTOM
             }
         }
     }
-
 }
