@@ -6,12 +6,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.vangelnum.ailandmark.presentation.InformationAboutPlace
+import com.vangelnum.ailandmark.presentation.InformationAboutPlaceViewModel
 import com.vangelnum.ailandmark.presentation.InformationScreen
 import com.vangelnum.ailandmark.presentation.MainScreen
 import com.vangelnum.ailandmark.presentation.MainViewModel
@@ -45,7 +48,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable(Screens.InformationScreen.route) {
-                        InformationScreen(classificationList.value)
+                        InformationScreen(classificationList.value, onNavigateToInformationAboutPlace = { place ->
+                            navController.navigate("${Screens.InformationAboutPlace.route}/$place")
+                        })
+                    }
+                    composable("${Screens.InformationAboutPlace.route}/{place}") { entry ->
+                        val placeViewModel by viewModels<InformationAboutPlaceViewModel>()
+                        val place = entry.arguments?.getString("place")
+                        placeViewModel.getPlaceInfo(place!!)
+                        val placeInfo = placeViewModel.placeInfo.collectAsState()
+                        if (placeInfo.value?.isEmpty() == true) {
+                           Text(text = "No information about this place")
+                        } else {
+                            InformationAboutPlace(placeInfo.value!!)
+                        }
                     }
                 }
             }

@@ -13,7 +13,7 @@ import org.tensorflow.lite.task.vision.classifier.ImageClassifier
 
 class TfLandMarkClassifier(
     private val context: Context,
-    private val threshold: Float = 0.6f,
+    private val threshold: Float = 0.65f,
     private val maxResult: Int = 5
 ) : LandmarkClassifier {
 
