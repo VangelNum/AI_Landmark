@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,7 +20,9 @@ import com.vangelnum.ailandmark.presentation.MainScreen
 import com.vangelnum.ailandmark.presentation.MainViewModel
 import com.vangelnum.ailandmark.presentation.screens.Screens
 import com.vangelnum.ailandmark.ui.theme.AILandmarkTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,13 +57,11 @@ class MainActivity : ComponentActivity() {
                     composable("${Screens.InformationAboutPlace.route}/{place}") { entry ->
                         val placeViewModel by viewModels<InformationAboutPlaceViewModel>()
                         val place = entry.arguments?.getString("place")
-                        placeViewModel.getPlaceInfo(place!!)
-                        val placeInfo = placeViewModel.placeInfo.collectAsState()
-                        if (placeInfo.value?.isEmpty() == true) {
-                           Text(text = "No information about this place")
-                        } else {
-                            InformationAboutPlace(placeInfo.value!!)
+                        LaunchedEffect(key1 = Unit) {
+                            placeViewModel.getPlaceInfo(place!!)
                         }
+                        val placeInfo = placeViewModel.placeInfo.collectAsState()
+                        InformationAboutPlace(state = placeInfo.value)
                     }
                 }
             }

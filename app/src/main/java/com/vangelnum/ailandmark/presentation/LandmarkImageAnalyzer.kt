@@ -19,7 +19,6 @@ class LandmarkImageAnalyzer(
             val rotationDegrees = image.imageInfo.rotationDegrees
             val bitmap = image.toBitmap().centerCrop(321, 321)
 
-            // Повернуть изображение
             val rotatedBitmap = rotateBitmap(bitmap, rotationDegrees)
 
             val results = classifier.classify(rotatedBitmap, rotationDegrees)

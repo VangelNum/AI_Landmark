@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -88,4 +90,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 
+    implementation("com.google.dagger:hilt-android:2.48")
+    implementation("androidx.navigation:navigation-compose:2.7.6")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
 }

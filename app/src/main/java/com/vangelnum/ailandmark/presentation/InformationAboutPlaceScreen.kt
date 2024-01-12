@@ -2,9 +2,11 @@ package com.vangelnum.ailandmark.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,18 +38,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vangelnum.ailandmark.data.Address
 import com.vangelnum.ailandmark.data.PlaceResponse
+import com.vangelnum.ailandmark.helpers.Resource
 
 @Composable
 fun InformationAboutPlace(
-    places: List<PlaceResponse>
+    state: Resource<List<PlaceResponse>?>
 ) {
-    LazyColumn {
-        items(places) { place ->
-            PlaceCard(place = place)
+    when (state) {
+        Resource.Empty -> {}
+        is Resource.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = state.message)
+            }
+        }
+        Resource.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        is Resource.Success -> {
+            if (state.data?.isNotEmpty() == true) {
+                LazyColumn {
+                    items(state.data) { place ->
+                        PlaceCard(place = place)
+                    }
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "No results found")
+                }
+            }
         }
     }
 }
@@ -145,43 +169,4 @@ fun AddressItem(icon: ImageVector, title: String, value: String) {
         Text(title, style = MaterialTheme.typography.bodySmall, color = Color(0xFFC97B99))
         Text(value, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
     }
-}
-
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun InformationAboutPlacePreview() {
-    InformationAboutPlace(
-        places = listOf(
-            PlaceResponse(
-                address = Address(
-                    road = "Main Street",
-                    hamlet = "Hamlet",
-                    town = "Town",
-                    village = "Village",
-                    city = "City",
-                    state_district = "District",
-                    state = "State",
-                    postcode = "12345",
-                    country = "Country",
-                    country_code = "CC"
-                ),
-                addressType = "Street",
-                boundingbox = emptyList(),
-                responseClass = "Class",
-                displayName = "Place Name",
-                geokml = "",
-                importance = 1.0,
-                lat = "12.345",
-                licence = "License",
-                lon = "67.890",
-                name = "Name",
-                osmId = 123456789L,
-                osmType = "Node",
-                placeId = 987654,
-                placeRank = 1,
-                type = "City"
-            )
-        )
-    )
 }
