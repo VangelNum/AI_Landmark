@@ -2,7 +2,7 @@ package com.vangelnum.ailandmark.presentation
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
-import com.vangelnum.ailandmark.data.ClassificationResult
+import com.vangelnum.ailandmark.data.feature_classification.ClassificationResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

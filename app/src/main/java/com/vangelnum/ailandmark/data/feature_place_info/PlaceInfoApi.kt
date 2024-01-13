@@ -1,4 +1,4 @@
-package com.vangelnum.ailandmark.data
+package com.vangelnum.ailandmark.data.feature_place_info
 
 import retrofit2.http.GET
 import retrofit2.http.Query

@@ -1,4 +1,4 @@
-package com.vangelnum.ailandmark.data
+package com.vangelnum.ailandmark.data.feature_place_info
 
 data class Address(
     val road: String?,

@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.vangelnum.ailandmark.data.ClassificationResult
+import com.vangelnum.ailandmark.data.feature_classification.ClassificationResult
 import com.vangelnum.ailandmark.domain.Classification
 
 @Composable

@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.vangelnum.ailandmark.R
-import com.vangelnum.ailandmark.data.ClassificationResult
-import com.vangelnum.ailandmark.data.TfLandMarkClassifier
+import com.vangelnum.ailandmark.data.feature_classification.ClassificationResult
+import com.vangelnum.ailandmark.data.feature_classification.TfLandMarkClassifier
 
 @Composable
 fun MainScreen(

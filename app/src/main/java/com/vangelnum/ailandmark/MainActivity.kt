@@ -82,9 +82,9 @@ class MainActivity : ComponentActivity() {
                         val placeViewModel by viewModels<InformationAboutPlaceViewModel>()
                         val place = entry.arguments?.getString("place")
                         LaunchedEffect(key1 = Unit) {
-                            placeViewModel.getPlaceInfo(place!!)
+                            placeViewModel.getListOfPlacesWithName(place!!)
                         }
-                        val placeInfo = placeViewModel.placeInfo.collectAsState()
+                        val placeInfo = placeViewModel.allPlaceInformation.collectAsState()
                         InformationAboutPlace(state = placeInfo.value, fusedLocationClient)
                     }
                 }

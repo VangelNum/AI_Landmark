@@ -1,4 +1,4 @@
-package com.vangelnum.ailandmark.data
+package com.vangelnum.ailandmark.data.feature_classification
 
 import android.content.Context
 import android.graphics.Bitmap
