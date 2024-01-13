@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName
 
 data class PlaceResponse(
     val address: Address?,
-    @SerializedName("addresstype")
-    val addressType: String,
+    @SerializedName("address_type")
+    val addressType: String?,
     val boundingbox: List<String>,
     @SerializedName("class")
     val responseClass: String,

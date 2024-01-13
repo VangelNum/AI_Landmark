@@ -1,7 +1,7 @@
 package com.vangelnum.ailandmark.di
 
+import com.vangelnum.ailandmark.data.PlaceInfoApi
 import com.vangelnum.ailandmark.data.PlaceInfoRepositoryImpl
-import com.vangelnum.ailandmark.domain.PlaceInfoApi
 import com.vangelnum.ailandmark.domain.PlaceInfoRepository
 import dagger.Module
 import dagger.Provides

@@ -1,6 +1,5 @@
 package com.vangelnum.ailandmark.data
 
-import com.vangelnum.ailandmark.domain.PlaceInfoApi
 import com.vangelnum.ailandmark.domain.PlaceInfoRepository
 import com.vangelnum.ailandmark.helpers.Resource
 import kotlinx.coroutines.flow.Flow
