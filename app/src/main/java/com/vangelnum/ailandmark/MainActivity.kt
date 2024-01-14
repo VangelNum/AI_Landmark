@@ -13,25 +13,16 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.vangelnum.ailandmark.presentation.InformationAboutPlace
-import com.vangelnum.ailandmark.presentation.InformationAboutPlaceViewModel
-import com.vangelnum.ailandmark.presentation.InformationScreen
-import com.vangelnum.ailandmark.presentation.MainScreen
-import com.vangelnum.ailandmark.presentation.MainViewModel
-import com.vangelnum.ailandmark.presentation.screens.Screens
+import com.vangelnum.ailandmark.feature_classification.presentation.CameraScreen
+import com.vangelnum.ailandmark.feature_classification.presentation.InformationScreen
+import com.vangelnum.ailandmark.feature_core.presentation.screens.Screens
+import com.vangelnum.ailandmark.feature_lookup_place.presentation.LookupAboutPlace
+import com.vangelnum.ailandmark.feature_lookup_place.presentation.LookupAboutPlaceViewModel
 import com.vangelnum.ailandmark.ui.theme.AILandmarkTheme
-import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.mapview.MapView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    private lateinit var mapView: MapView
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!hasCameraPermission()) {
@@ -49,10 +40,6 @@ class MainActivity : ComponentActivity() {
                 0
             )
         }
-        MapKitFactory.setApiKey("74a45254-7bef-4167-916a-39bbef18987d")
-        MapKitFactory.initialize(this)
-        mapView = MapView(this)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         setContent {
             AILandmarkTheme {
                 val navController = rememberNavController()
@@ -60,32 +47,32 @@ class MainActivity : ComponentActivity() {
                 val classificationList = mainViewModel.classificationList.collectAsState()
                 NavHost(
                     navController = navController,
-                    startDestination = Screens.MainScreen.route
+                    startDestination = Screens.CameraScreen.route
                 ) {
-                    composable(Screens.MainScreen.route) {
-                        MainScreen(
+                    composable(Screens.CameraScreen.route) {
+                        CameraScreen(
                             applicationContext = applicationContext,
                             onNavigateToInformation = { classifications ->
                                 mainViewModel.setValue(classifications)
-                                navController.navigate(Screens.InformationScreen.route)
+                                navController.navigate(Screens.ClassificationScreen.route)
                             }
                         )
                     }
-                    composable(Screens.InformationScreen.route) {
+                    composable(Screens.ClassificationScreen.route) {
                         InformationScreen(
                             classificationList.value,
                             onNavigateToInformationAboutPlace = { place ->
-                                navController.navigate("${Screens.InformationAboutPlace.route}/$place")
+                                navController.navigate("${Screens.LookupAboutPlace.route}/$place")
                             })
                     }
-                    composable("${Screens.InformationAboutPlace.route}/{place}") { entry ->
-                        val placeViewModel by viewModels<InformationAboutPlaceViewModel>()
+                    composable("${Screens.LookupAboutPlace.route}/{place}") { entry ->
+                        val placeViewModel by viewModels<LookupAboutPlaceViewModel>()
                         val place = entry.arguments?.getString("place")
                         LaunchedEffect(key1 = Unit) {
                             placeViewModel.getListOfPlacesWithName(place!!)
                         }
                         val placeInfo = placeViewModel.allPlaceInformation.collectAsState()
-                        InformationAboutPlace(state = placeInfo.value, fusedLocationClient)
+                        LookupAboutPlace(state = placeInfo.value)
                     }
                 }
             }
@@ -101,21 +88,10 @@ class MainActivity : ComponentActivity() {
             this, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        // Combine the results using logical AND
         return coarseLocationPermission && fineLocationPermission
     }
 
     private fun hasCameraPermission() = ContextCompat.checkSelfPermission(
         this, Manifest.permission.CAMERA
     ) == PackageManager.PERMISSION_GRANTED
-
-    override fun onStart() {
-        super.onStart()
-        MapKitFactory.getInstance().onStart()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        MapKitFactory.getInstance().onStop()
-    }
 }
