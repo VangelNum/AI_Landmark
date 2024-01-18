@@ -95,7 +95,14 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.6")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
 
-    implementation ("com.yandex.android:maps.mobile:4.4.0-full")
+    implementation("com.yandex.android:maps.mobile:4.4.0-full")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    val roomVersion = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
 }

@@ -15,7 +15,7 @@ data class Extratags(
     @SerializedName("wheelchair") val wheelchair: String,
     @SerializedName("wikidata") val wikidata: String,
     @SerializedName("wikipedia") val wikipedia: String,
-    @SerializedName("yearOfConstruction") val yearOfConstruction: String,
+    @SerializedName("year_of_construction") val yearOfConstruction: String,
     @SerializedName("website") val website: String,
     @SerializedName("opening_hours") val openingHours: String
 )

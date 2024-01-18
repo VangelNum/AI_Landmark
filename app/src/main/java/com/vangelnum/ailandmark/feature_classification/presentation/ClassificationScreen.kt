@@ -2,7 +2,6 @@ package com.vangelnum.ailandmark.feature_classification.presentation
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,16 +33,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vangelnum.ailandmark.feature_classification.data.ClassificationResult
 import com.vangelnum.ailandmark.feature_classification.domain.Classification
+import com.vangelnum.ailandmark.feature_history_search.data.SearchHistoryEntity
 
 @Composable
 fun InformationScreen(
     information: ClassificationResult,
-    onNavigateToInformationAboutPlace: (String) -> Unit
+    onNavigateToInformationAboutPlace: (String) -> Unit,
+    insertToSearchHistory: (SearchHistoryEntity) -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
     ) {
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
@@ -65,7 +65,8 @@ fun InformationScreen(
             items(information.classifications) { classification ->
                 ClassificationRow(
                     classification = classification,
-                    onNavigateToInformationAboutPlace
+                    onNavigateToInformationAboutPlace,
+                    insertToSearchHistory
                 )
             }
         }
@@ -75,7 +76,8 @@ fun InformationScreen(
 @Composable
 fun ClassificationRow(
     classification: Classification,
-    onNavigateToInformationAboutPlace: (String) -> Unit
+    onNavigateToInformationAboutPlace: (String) -> Unit,
+    insertToSearchHistory: (SearchHistoryEntity) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -111,6 +113,13 @@ fun ClassificationRow(
             Button(
                 modifier = Modifier.weight(1f),
                 onClick = {
+                    insertToSearchHistory(
+                        SearchHistoryEntity(
+                            0,
+                            classification.name,
+                            classification.score
+                        )
+                    )
                     onNavigateToInformationAboutPlace(classification.name)
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -142,6 +151,9 @@ fun PreviewInformationScreen() {
         information = ClassificationResult(
             classifications = places,
             imageBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        )
+        ),
+        insertToSearchHistory = {
+
+        }
     )
 }
