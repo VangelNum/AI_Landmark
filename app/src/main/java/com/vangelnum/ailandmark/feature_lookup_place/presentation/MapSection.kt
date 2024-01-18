@@ -26,6 +26,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -44,7 +45,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.vangelnum.ailandmark.R
 import com.vangelnum.ailandmark.feature_core.helpers.ComposableLifecycle
 import com.vangelnum.ailandmark.feature_lookup_place.data.LookupPlaceInfo
@@ -66,6 +71,8 @@ import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 
+private lateinit var locationCallback: LocationCallback
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MapSection(
@@ -81,6 +88,12 @@ fun MapSection(
 
     val context = LocalContext.current
     val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+
+    DisposableEffect(context) {
+        onDispose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
 
     MapLifecycle(mapViews = mapViews)
 
@@ -128,19 +141,19 @@ fun MapSection(
                         mapView!!
                     }
                 ) { mapView ->
-                    lastLocationUpdate(
-                        context = context,
-                        mapView = mapView,
-                        fusedLocationClient = fusedLocationClient,
-                        onUserLatitude = {
-                            userLatitude = it
-                        },
-                        onUserLongitude = {
-                            userLongitude = it
-                        }
-                    )
-
                     if (isFirstLaunch) {
+                        lastLocationUpdate(
+                            context = context,
+                            mapView = mapView,
+                            fusedLocationClient = fusedLocationClient,
+                            onUserLatitude = {
+                                userLatitude = it
+                            },
+                            onUserLongitude = {
+                                userLongitude = it
+                            }
+                        )
+
                         moveToPlace(mapView = mapView, place = place)
                         isFirstLaunch = false
                     }
@@ -159,7 +172,11 @@ fun MapSection(
                         place = place
                     )
                 }
-                androidx.compose.animation.AnimatedVisibility(visible = showProgressNavigation, enter = fadeIn(), exit = fadeOut()) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showProgressNavigation,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = Color.Green)
                     }
@@ -202,7 +219,7 @@ fun MapSection(
                         onDrivingSessionCallback = {
                             drivingSession.value = it
                         },
-                        OnShowProgressNavigation = {
+                        onShowProgressNavigation = {
                             showProgressNavigation = it
                         }
                     )
@@ -219,7 +236,7 @@ fun createPathToPlace(
     userLongitude: Double,
     mapView: MapView?,
     onDrivingSessionCallback: (DrivingSession) -> Unit,
-    OnShowProgressNavigation:(Boolean)->Unit
+    onShowProgressNavigation: (Boolean) -> Unit
 ) {
     val points = buildList {
         add(
@@ -263,17 +280,21 @@ fun createPathToPlace(
                         position
                     )
                 }
-                OnShowProgressNavigation(false)
+                onShowProgressNavigation(false)
             } else {
-                OnShowProgressNavigation(false)
+                onShowProgressNavigation(false)
                 Toast.makeText(context, "No driving routes received", Toast.LENGTH_SHORT).show()
                 Log.d("MapSection", "No driving routes received")
             }
         }
 
         override fun onDrivingRoutesError(error: com.yandex.runtime.Error) {
-            OnShowProgressNavigation(false)
-            Toast.makeText(context, "Error in driving routes calculation: $error", Toast.LENGTH_SHORT).show()
+            onShowProgressNavigation(false)
+            Toast.makeText(
+                context,
+                "Error in driving routes calculation: $error",
+                Toast.LENGTH_SHORT
+            ).show()
             Log.e("MapSection", "Error in driving routes calculation: $error")
         }
     }
@@ -373,6 +394,16 @@ private fun lastLocationUpdate(
     onUserLatitude: (Double) -> Unit,
     onUserLongitude: (Double) -> Unit
 ) {
+    val locationRequest = LocationRequest.Builder(1000L).setPriority(Priority.PRIORITY_HIGH_ACCURACY).build()
+    locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            locationResult.lastLocation?.let { location ->
+                onUserLatitude(location.latitude)
+                onUserLongitude(location.longitude)
+            }
+        }
+    }
+
     if (ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -389,22 +420,26 @@ private fun lastLocationUpdate(
             ),
             0
         )
-    }
-    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-        @Suppress("DEPRECATION")
-        mapView.mapWindow.map.mapObjects.addPlacemark(
-            Point(
-                location.latitude,
-                location.longitude
-            )
-        ).apply {
-            setIcon(ImageProvider.fromResource(context, R.drawable.my_location))
+    } else {
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            @Suppress("DEPRECATION")
+            mapView.mapWindow.map.mapObjects.addPlacemark(
+                Point(
+                    location.latitude,
+                    location.longitude
+                )
+            ).apply {
+                setIcon(ImageProvider.fromResource(context, R.drawable.my_location))
+            }
+            onUserLatitude(location.latitude)
+            onUserLongitude(location.longitude)
         }
-        onUserLatitude(location.latitude)
-        onUserLongitude(location.longitude)
+        fusedLocationClient.lastLocation.addOnFailureListener { exception ->
+            Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }
-
 
 private fun moveToPlace(
     mapView: MapView,
@@ -428,23 +463,40 @@ private fun MapLifecycle(
 ) {
     ComposableLifecycle { _, event ->
         when (event) {
-
-            Lifecycle.Event.ON_STOP -> {
-                MapKitFactory.getInstance().onStop()
-                mapViews.forEach { mapView ->
-                    mapView.onStop()
-                }
+            Lifecycle.Event.ON_CREATE -> {
+                Log.d("event", "On create")
             }
 
             Lifecycle.Event.ON_START -> {
+                Log.d("event", "On start")
                 MapKitFactory.getInstance().onStart()
                 mapViews.forEach { mapView ->
                     mapView.onStart()
                 }
             }
 
-            else -> {
+            Lifecycle.Event.ON_RESUME -> {
+                Log.d("event", "On resume")
+            }
 
+            Lifecycle.Event.ON_PAUSE -> {
+                Log.d("event", "On pause")
+            }
+
+            Lifecycle.Event.ON_STOP -> {
+                Log.d("event", "On stop")
+                MapKitFactory.getInstance().onStop()
+                mapViews.forEach { mapView ->
+                    mapView.onStop()
+                }
+            }
+
+            Lifecycle.Event.ON_DESTROY -> {
+                Log.d("event", "On destroy")
+            }
+
+            else -> {
+                Log.d("event", "Unknown event")
             }
         }
     }
